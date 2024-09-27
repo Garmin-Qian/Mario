@@ -121,8 +121,11 @@ def get_merge_performance(args: argparse.Namespace, models_to_merge: list, train
 
 if __name__ == "__main__":
 
-    for source_dataset_name in ["cola", "sst2", "mrpc", "stsb", "qqp", "mnli", "qnli", "rte"]:
-        for target_dataset_name in ["cola", "sst2", "mrpc", "stsb", "qqp", "mnli", "qnli", "rte"]:
+    # for source_dataset_name in ["cola", "sst2", "mrpc", "stsb", "qqp", "mnli", "qnli", "rte"]:
+    #     for target_dataset_name in ["cola", "sst2", "mrpc", "stsb", "qqp", "mnli", "qnli", "rte"]:
+    # for source_dataset_name in ["cola", "sst2", "mrpc", "stsb"]:
+    for source_dataset_name in ["mnli", "qnli"]:
+        for target_dataset_name in ["cola", "sst2", "mrpc", "stsb"]:
             # skip when source_dataset_name equals to target_dataset_name
             if source_dataset_name == target_dataset_name:
                 continue
@@ -181,7 +184,7 @@ if __name__ == "__main__":
             # set up logger
             logging.basicConfig(level=logging.INFO)
             logger = logging.getLogger()
-            logger.setLevel(logging.DEBUG)
+            # logger.setLevel(logging.DEBUG)
             # put the target dataset name at end
             if args.merging_method_name == "mask_merging":
                 save_merge_log_path = f"./save_merge_logs/{args.dataset_names[0]}_{args.dataset_names[-1]}/{args.merging_method_name}/{args.mask_apply_method}/{args.language_model_name}"
@@ -295,6 +298,7 @@ if __name__ == "__main__":
                     args.scaling_coefficient = results_dict["scaling_coefficient"]
                     args.param_value_mask_rate = results_dict["param_value_mask_rate"]
                 weight_mask_rate_range = [0.1, 0.3, 0.5, 0.7, 0.9]
+                # weight_mask_rate_range = [0.1, 0.3, 0.5]
                 for weight_mask_rate in weight_mask_rate_range:
                     args.weight_mask_rate = weight_mask_rate
                     # dictionary

@@ -37,6 +37,8 @@ finetuned_model_backbone_mapping_dict = {
 
 
 def recover_from_pretrained_model(finetuned_model_name, pretrained_model_name, args, logger: logging.Logger, recovered_model_save_path: str, recover_manner: str):
+    # finetuned_model_name = "vanillaOVO/" + finetuned_model_name
+    # pretrained_model_name = "meta-llama/" + pretrained_model_name
     try:
         pretrained_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, pretrained_model_name), device_map="cpu")
         pretrained_tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, pretrained_model_name))
@@ -80,20 +82,33 @@ def recover_from_pretrained_model(finetuned_model_name, pretrained_model_name, a
 
 
 def create_llm(finetuned_model_name, pretrained_model_name, args, logger: logging.Logger, tensor_parallel_size=1, just_inference=False, save_model_path=None):
+    # finetuned_model_name = "WizardLMTeam/" + finetuned_model_name #Math
+    finetuned_model_name = "vanillaOVO/" + finetuned_model_name #Coder
+    # finetuned_model_name = "layoric/" + finetuned_model_name 
+    pretrained_model_name = "meta-llama/" + pretrained_model_name
     if just_inference:
-        if os.path.exists(os.path.join(cache_dir, finetuned_model_name)):
-            llm = LLM(model=os.path.join(cache_dir, finetuned_model_name), tensor_parallel_size=tensor_parallel_size)
-        else:
-            assert os.path.exists(finetuned_model_name)
-            llm = LLM(model=finetuned_model_name, tensor_parallel_size=tensor_parallel_size)
-        assert save_model_path is None
+        print("just_inference: ",finetuned_model_name)
+        logger.info(f"just_inference {finetuned_model_name}...")
+        # print("check",os.path.join(cache_dir, finetuned_model_name)) #garmin
+        # if os.path.exists(os.path.join(cache_dir, finetuned_model_name)):
+        #     llm = LLM(model=os.path.join(cache_dir, finetuned_model_name), tensor_parallel_size=tensor_parallel_size)
+        # else:
+        #     assert os.path.exists(finetuned_model_name)
+        #     llm = LLM(model=finetuned_model_name, tensor_parallel_size=tensor_parallel_size)
+        # assert save_model_path is None
+        llm = LLM(model=finetuned_model_name, tensor_parallel_size=tensor_parallel_size, gpu_memory_utilization=0.95)
     else:
+        logger.info(f"inference with dare {finetuned_model_name}...")
         try:
+            print("try:", pretrained_model_name)
+            logger.info(f"try {finetuned_model_name}...")
             pretrained_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, pretrained_model_name), device_map="cpu")
             pretrained_tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, pretrained_model_name))
             finetuned_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, finetuned_model_name), device_map="cpu")
             finetuned_tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, finetuned_model_name))
         except:
+            print("except:",pretrained_model_name)
+            logger.info(f"except {finetuned_model_name}...")
             pretrained_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=pretrained_model_name, cache_dir=cache_dir, device_map="cpu")
             pretrained_tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=pretrained_model_name, cache_dir=cache_dir)
             finetuned_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=finetuned_model_name, cache_dir=cache_dir, device_map="cpu")
@@ -138,10 +153,11 @@ def create_llm(finetuned_model_name, pretrained_model_name, args, logger: loggin
 
         logger.info(f"saving model at {save_model_path}...")
         os.makedirs(save_model_path, exist_ok=True)
+        # garmin
         finetuned_model.save_pretrained(save_directory=save_model_path)
         finetuned_tokenizer.save_pretrained(save_directory=save_model_path)
         logger.info(f"model is saved")
-        llm = LLM(model=save_model_path, tensor_parallel_size=tensor_parallel_size)
+        llm = LLM(model=save_model_path, tensor_parallel_size=tensor_parallel_size, gpu_memory_utilization=0.95)
 
     return llm
 
@@ -221,7 +237,7 @@ def test_gsm8k(llm, test_data_path, args, logger: logging.Logger, start_index=0,
 
     gsm8k_ins = gsm8k_ins[start_index:end_index]
     gsm8k_answers = gsm8k_answers[start_index:end_index]
-    batch_gsm8k_ins = batch_data(gsm8k_ins, batch_size=60)
+    batch_gsm8k_ins = batch_data(gsm8k_ins, batch_size=60) #60
 
     stop_tokens = ["Instruction:", "Instruction", "Response:", "Response"]
     sampling_params = SamplingParams(temperature=0.0, top_p=1, max_tokens=1024, stop=stop_tokens)
@@ -275,7 +291,7 @@ def test_hendrycks_math(llm, test_data_path, args, logger: logging.Logger, start
 
     hendrycks_math_ins = hendrycks_math_ins[start_index:end_index]
     hendrycks_math_answers = hendrycks_math_answers[start_index:end_index]
-    batch_hendrycks_math_ins = batch_data(hendrycks_math_ins, batch_size=50)
+    batch_hendrycks_math_ins = batch_data(hendrycks_math_ins, batch_size=50) #50
 
     stop_tokens = ["Instruction:", "Instruction", "Response:", "Response"]
     sampling_params = SamplingParams(temperature=0.0, top_p=1, max_tokens=2048, stop=stop_tokens)
@@ -564,6 +580,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_weight_rescale", action="store_true", default=False, help="whether to rescale the weight by 1 / (1 - weight_mask_rate)")
     parser.add_argument("--mask_strategy", type=str, help="mask strategy", default="random", choices=["random", "magnitude"])
     parser.add_argument("--wizardcoder_use_llama2_as_backbone", action="store_true", default=False, help="whether to use llama-2 as the backbone for WizardCoder")
+    # parser.add_argument("--wizardcoder_use_llama2_as_backbone", action="store_true", default=True, help="whether to use llama-2 as the backbone for WizardCoder")
 
     try:
         args = parser.parse_args()
@@ -628,14 +645,14 @@ if __name__ == "__main__":
                                           args=args, logger=logger, recovered_model_save_path=recovered_model_save_path,
                                           recover_manner="add")
         args.finetuned_model_name = f"{args.finetuned_model_name}-recovered"
-
+    # garmin
     llm = create_llm(finetuned_model_name=args.finetuned_model_name,
                      pretrained_model_name=finetuned_model_backbone_mapping_dict[args.finetuned_model_name],
                      args=args, logger=logger, tensor_parallel_size=args.tensor_parallel_size,
                      just_inference=just_inference, save_model_path=save_model_path)
 
     if args.dataset_name == "alpaca_eval":
-        test_alpaca_eval(llm=llm, finetuned_model_name=args.finetuned_model_name,
+        test_alpaca_eval(llm=llm, finetuned_model_name=args.finetuned_model_name, # "WizardLMTeam/"+
                          args=args, logger=logger, start_index=args.start_index, end_index=args.end_index,
                          save_model_path=save_model_path, save_gen_results_folder=save_gen_results_folder)
 

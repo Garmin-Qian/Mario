@@ -12,16 +12,34 @@ from inference_llms_instruct_math_code import create_llm, test_alpaca_eval, test
 from utils.load_config import cache_dir
 
 
+# task_model_mapping_dict = {
+#     "instruct": "WizardLM-13B-V1.2",
+#     "math": "WizardMath-13B-V1.0",
+#     "code": "llama-2-13b-code-alpaca"
+# }
+# finetuned_model_backbone_mapping_dict = {
+#     "WizardLM-13B-V1.2": "Llama-2-13b-hf",
+#     "WizardMath-13B-V1.0": "Llama-2-13b-hf",
+#     "llama-2-13b-code-alpaca": "Llama-2-13b-hf"
+# }
+
 task_model_mapping_dict = {
-    "instruct": "WizardLM-13B-V1.2",
-    "math": "WizardMath-13B-V1.0",
-    "code": "llama-2-13b-code-alpaca"
+    "math": "WizardLMTeam/WizardMath-7B-V1.0",
+    "code": "vanillaOVO/WizardCoder-Python-7B-V1.0"
 }
 finetuned_model_backbone_mapping_dict = {
-    "WizardLM-13B-V1.2": "Llama-2-13b-hf",
-    "WizardMath-13B-V1.0": "Llama-2-13b-hf",
-    "llama-2-13b-code-alpaca": "Llama-2-13b-hf"
+    "WizardLMTeam/WizardMath-7B-V1.0": "meta-llama/Llama-2-7b-hf",
+    "vanillaOVO/WizardCoder-Python-7B-V1.0": "meta-llama/Llama-2-7b-hf",
 }
+
+# task_model_mapping_dict = {
+#     "math": "models--WizardLMTeam--WizardMath-7B-V1.0",
+#     "code": "models--vanillaOVO--WizardCoder-Python-7B-V1.0"
+# }
+# finetuned_model_backbone_mapping_dict = {
+#     "models--WizardLMTeam--WizardMath-7B-V1.0": "models--meta-llama--Llama-2-7b-hf",
+#     "models--vanillaOVO--WizardCoder-Python-7B-V1.0": "models--meta-llama--Llama-2-7b-hf",
+# }
 
 
 def get_merge_performance(args: argparse.Namespace, finetuned_model_names: list, merge_task_names: list, models_to_merge: list, trainers: list, logger: logging.Logger,
@@ -107,6 +125,7 @@ def get_merge_performance(args: argparse.Namespace, finetuned_model_names: list,
 
     # since the tokenizers of different tasks are different, we need to save them (together with the model) separately
     save_model_paths = [save_instruct_model_path, save_math_model_path, save_code_model_path]
+    print(save_model_paths)
     index = 0
     for save_model_path in save_model_paths:
         if save_model_path is not None:
@@ -193,9 +212,11 @@ if __name__ == "__main__":
     finetuned_model_names = []
     merge_task_names = []
     for merge_flag, task_name in zip([args.merge_instruct, args.merge_math, args.merge_code], ["instruct", "math", "code"]):
+        print(merge_flag, task_name)
         if merge_flag:
             finetuned_model_names.append(task_model_mapping_dict[task_name])
             merge_task_names.append(task_name)
+    print(finetuned_model_names, merge_task_names)
 
     pretrained_model_names = [finetuned_model_backbone_mapping_dict[finetuned_model_name] for finetuned_model_name in finetuned_model_names]
     assert len(set(pretrained_model_names)) == 1, "the backbone of all the finetuned models should be the same!"
@@ -239,8 +260,12 @@ if __name__ == "__main__":
     finetuned_tokenizers = []
     merging_method = MergingMethod(merging_method_name=args.merging_method_name)
     for finetuned_model_name in finetuned_model_names:
-        finetuned_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, finetuned_model_name), device_map="cpu")
-        finetuned_tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, finetuned_model_name),)
+        # finetuned_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, finetuned_model_name), device_map="cpu")
+        # finetuned_tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=os.path.join(cache_dir, finetuned_model_name),)
+
+        finetuned_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path=finetuned_model_name, cache_dir=cache_dir, device_map="cpu")
+        finetuned_tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=finetuned_model_name, cache_dir=cache_dir)
+
         models_to_merge.append(finetuned_model)
         finetuned_tokenizers.append(finetuned_tokenizer)
 

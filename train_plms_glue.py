@@ -59,7 +59,7 @@ if __name__ == "__main__":
         # set up logger
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+        # logger.setLevel(logging.DEBUG)
         os.makedirs(f"./save_logs/{args.dataset_name}/{save_model_name}", exist_ok=True)
         # create file handler that logs debug and higher level messages
         fh = logging.FileHandler(f"./save_logs/{args.dataset_name}/{save_model_name}/{str(time.time())}.log")

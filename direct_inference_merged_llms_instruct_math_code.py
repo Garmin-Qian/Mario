@@ -8,17 +8,25 @@ from vllm import LLM, SamplingParams
 from inference_llms_instruct_math_code import test_alpaca_eval, test_gsm8k, test_hendrycks_math, test_human_eval, test_mbpp
 
 
+# task_model_mapping_dict = {
+#     "instruct": "WizardLM-13B-V1.2",
+#     "math": "WizardMath-13B-V1.0",
+#     "code": "llama-2-13b-code-alpaca"
+# }
+# finetuned_model_backbone_mapping_dict = {
+#     "WizardLM-13B-V1.2": "Llama-2-13b-hf",
+#     "WizardMath-13B-V1.0": "Llama-2-13b-hf",
+#     "llama-2-13b-code-alpaca": "Llama-2-13b-hf"
+# }
+
 task_model_mapping_dict = {
-    "instruct": "WizardLM-13B-V1.2",
-    "math": "WizardMath-13B-V1.0",
-    "code": "llama-2-13b-code-alpaca"
+    "math": "WizardLMTeam/WizardMath-7B-V1.0",
+    "code": "vanillaOVO/WizardCoder-Python-7B-V1.0"
 }
 finetuned_model_backbone_mapping_dict = {
-    "WizardLM-13B-V1.2": "Llama-2-13b-hf",
-    "WizardMath-13B-V1.0": "Llama-2-13b-hf",
-    "llama-2-13b-code-alpaca": "Llama-2-13b-hf"
+    "WizardLMTeam/WizardMath-7B-V1.0": "meta-llama/Llama-2-7b-hf",
+    "vanillaOVO/WizardCoder-Python-7B-V1.0": "meta-llama/Llama-2-7b-hf",
 }
-
 
 if __name__ == "__main__":
 

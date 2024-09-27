@@ -72,8 +72,9 @@ class GLUEDataLoader:
         :param max_seq_length: int, maximal input length of examples in the dataset
         :return:
         """
-        # dataset = load_dataset(path="glue", name=dataset_name, cache_dir=cache_dir)
-        dataset = load_dataset(path=os.path.join(cache_dir, "glue"), name=dataset_name)
+        dataset = load_dataset(path="glue", name=dataset_name, cache_dir=cache_dir)
+        # dataset = load_dataset(path=os.path.join(cache_dir, "glue"), name=dataset_name)
+
 
         # get the key of datasets
         sentence1_key, sentence2_key = glue_data_keys_map[dataset_name]

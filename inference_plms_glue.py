@@ -60,12 +60,14 @@ if __name__ == "__main__":
         tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=args.language_model_name, cache_dir=cache_dir)
     glue_data_loader = GLUEDataLoader(tokenizer=tokenizer)
 
-    dataset_names = ["cola", "sst2", "mrpc", "stsb", "qqp", "mnli", "qnli", "rte"]
+    # dataset_names = ["cola", "sst2", "mrpc", "stsb", "qqp", "mnli", "qnli", "rte"]
+    dataset_names = ["mnli", "qnli"]
     for dataset_name in dataset_names:
         args.dataset_name = dataset_name
         # best checkpoint setting
         learning_rate = dataset_model_learning_rate_mapping_dict[f"{dataset_name}_{args.language_model_name}"]
         load_model_path = f"./save_models/{dataset_name}/{args.language_model_name}_lr{learning_rate}"
+        print(load_model_path)
         if args.weight_mask_rate == 0.0:
             save_model_name = f"{args.language_model_name}_lr{learning_rate}_inference_mask_{args.weight_mask_rate}"
         else:
@@ -77,7 +79,7 @@ if __name__ == "__main__":
         # set up logger
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+        # logger.setLevel(logging.DEBUG)
         os.makedirs(f"./save_logs/{args.dataset_name}/{save_model_name}", exist_ok=True)
         # create file handler that logs debug and higher level messages
         fh = logging.FileHandler(f"./save_logs/{args.dataset_name}/{save_model_name}/{str(time.time())}.log")
